@@ -22,10 +22,10 @@ public class AccountController:ControllerBase
     
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login(LoginDto loginDto)
+    public async Task<TokenDto> Login(LoginDto loginDto)
     {
-        if (ModelState.IsValid == false) return BadRequest();
-        return Ok(await _accountService.Login(loginDto));
+        
+        return await _accountService.Login(loginDto);
     }
     
     //register
@@ -36,9 +36,17 @@ public class AccountController:ControllerBase
         var result = await _accountService.Register(registerDto);
         return result.Succeeded ? Ok(result) : BadRequest(result);
     }
+
+    [AllowAnonymous]
+    [HttpGet("AssignRole")]
+    public async Task<bool> AssignRoleToUser(RoleDto role)
+    {
+       return await _userService.AssignUserRole(role);
+    }
     
     //get user list
     [HttpGet("getUserList")]
+    [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> GetUserList()
     {
         return Ok(await _userService.GetUsers());

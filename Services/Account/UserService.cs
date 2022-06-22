@@ -1,19 +1,20 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using WebApi.Data.Entities;
 using WebApi.Models;
 
 namespace WebApi.Services.Account;
 
 public class UserService
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<User> _userManager;
 
-    public UserService(UserManager<IdentityUser> userManager)
+    public UserService(UserManager<User> userManager)
     {
         _userManager = userManager;
     }
     
-    public async Task<IdentityUser> GetUserByEmail(string email)
+    public async Task<User> GetUserByEmail(string email)
     {
         return await _userManager.FindByEmailAsync(email);
     }
@@ -30,8 +31,16 @@ public class UserService
     }
     
     //get user by id
-    public async Task<IdentityUser> GetUserById(string id)
+    public async Task<User> GetUserById(string id)
     {
         return await _userManager.FindByIdAsync(id);
+    }
+
+    public async Task<bool> AssignUserRole(RoleDto role)
+    {
+        var user = await _userManager.FindByIdAsync(role.UserId);
+        if (user == null) return false;
+            await _userManager.AddToRoleAsync(user, role.Role);
+        return true;
     }
 }

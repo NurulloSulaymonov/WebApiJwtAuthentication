@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.Data.Entities;
 
 namespace WebApi.Controllers;
 
@@ -7,9 +8,9 @@ namespace WebApi.Controllers;
 [ApiController]
 public class UsersController:ControllerBase
 {
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<User> _userManager;
 
-    public UsersController(UserManager<IdentityUser> userManager)
+    public UsersController(UserManager<User> userManager)
     {
         _userManager = userManager;
     }

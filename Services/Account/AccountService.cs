@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using WebApi.Data.Entities;
 using WebApi.Models;
 
 namespace WebApi.Services.Account;
@@ -13,9 +14,9 @@ namespace WebApi.Services.Account;
 public class AccountService
 {
     private readonly IConfiguration _configuration;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<User> _userManager;
 
-    public AccountService(IConfiguration configuration, UserManager<IdentityUser> userManager)
+    public AccountService(IConfiguration configuration, UserManager<User> userManager)
     {
         _configuration = configuration;
         _userManager = userManager;
@@ -27,7 +28,7 @@ public class AccountService
         var user = await _userManager.FindByNameAsync(login.Username);
         if (user != null)
         {
-            var validatePassword = new PasswordValidator<IdentityUser>();
+            var validatePassword = new PasswordValidator<User>();
             var result = await  validatePassword.ValidateAsync(_userManager, user, login.Password);
             if (!result.Succeeded)
             {
@@ -44,21 +45,20 @@ public class AccountService
     
     
     
-    private async Task<TokenDto> GenerateJwtToken(IdentityUser user)
+    private async Task<TokenDto> GenerateJwtToken(User user)
     {
-        //roles
-
-        var roles = await _userManager.GetRolesAsync(user);
+       
         
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
         var claims = new List<Claim>()
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+            new Claim(ClaimTypes.Name, user.UserName),
             new Claim(ClaimTypes.Email, user.Email),
         };
-        //addroles
-        claims.AddRange(roles.Select(x=>new Claim(ClaimTypes.Role,x)));
+        //add roles
+        var roles = await _userManager.GetRolesAsync(user);
+        claims.AddRange(roles.Select(role=>new Claim(ClaimTypes.Role,role)));
         
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
@@ -76,7 +76,7 @@ public class AccountService
 
     public async Task<IdentityResult> Register(RegisterDto registerDto)
     {
-        var user = new IdentityUser()
+        var user = new User()
         {
             UserName = registerDto.Username,
             Email = registerDto.Email

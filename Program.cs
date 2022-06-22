@@ -1,10 +1,13 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using WebApi.Data;
+using WebApi.Data.Entities;
+using WebApi.Helpers;
 using WebApi.Services.Account;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +21,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddDbContext<DataContext>(config=>config.UseSqlite("Data Source=blog.db"));
 
 //control identity tables in sqlite database
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(config =>
+builder.Services.AddIdentity<User, IdentityRole>(config =>
     {
         config.Password.RequiredLength = 4;
         config.Password.RequireDigit = false; // must have at least one digit
@@ -51,19 +54,17 @@ builder.Services.AddAuthentication(x =>
     };
 });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Sample web API",
         Version = "v1",
-        Description = "Sampme API Services.",
+        Description = "Sample API Services.",
         Contact = new OpenApiContact
         {
-            Name = "Nurullo Sulaymonov."
+            Name = "Khayriddin Sakhiev."
         },
     });
     c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
@@ -97,8 +98,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-
-
+await app.Services.Initialize();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
